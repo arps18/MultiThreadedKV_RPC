@@ -3,16 +3,8 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * The Server class represents a replica server in a distributed key-value store system.
@@ -22,10 +14,9 @@ public class Server implements RemoteInterface {
   // Private fields for the server
   private Map<String, String> keyValueStore;
   private Set<RemoteInterface> replicaServers;
-  private ExecutorService executorService;
-  private boolean isCoordinator;
   private static List<RemoteInterface> replicaStubs;
   private static List<Integer> replicaRegistryPorts;
+  private boolean isCoordinator;
 
   /**
    * Constructs a new Server instance.
@@ -35,11 +26,11 @@ public class Server implements RemoteInterface {
   public Server() {
     keyValueStore = new ConcurrentHashMap<>();
     replicaServers = ConcurrentHashMap.newKeySet();
-    executorService = Executors.newFixedThreadPool(15);
-    isCoordinator = false;
     replicaStubs = new ArrayList<>();
     replicaRegistryPorts = new ArrayList<>();
+    isCoordinator = false;
   }
+
   /**
    * The main method to start the replica servers and coordinate the system.
    *
@@ -59,6 +50,7 @@ public class Server implements RemoteInterface {
       if (i == 1) {
         coordinator = server;
         coordinator.isCoordinator = true;
+        System.out.println("-------------------------------------");
         System.out.println("The Replica " + i + " is the Coordinator.");
       }
 
@@ -70,9 +62,9 @@ public class Server implements RemoteInterface {
   /**
    * Starts the replica server with the provided registry port and coordinator instance.
    *
-   * @param server the server instance to be started.
-   * @param registryPort the registry port for RMI communication.
-   * @param coordinator the coordinator instance for coordinating replicas.
+   * @param server        the server instance to be started.
+   * @param registryPort  the registry port for RMI communication.
+   * @param coordinator   the coordinator instance for coordinating replicas.
    */
   private static void startServer(Server server, int registryPort, Server coordinator) {
     try {
@@ -121,9 +113,9 @@ public class Server implements RemoteInterface {
    */
   private String getCurrentTimestamp() {
     SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss.SSS");
-    sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
     return "[Time: " + sdf.format(new Date()) + "] ";
   }
+
   /**
    * Processes the incoming client request based on the command provided.
    * If the command is "PUT", it prepares and performs the PUT operation on the key-value store.
@@ -158,9 +150,9 @@ public class Server implements RemoteInterface {
       System.out.println(getCurrentTimestamp() + "GET request processed");
 
       if (value != null) {
-        return  "Value: " + value;
+        return "Value: " + value;
       } else {
-        return  "Key not found";
+        return "Key not found";
       }
     } else if (command.equalsIgnoreCase("DELETE")) {
       String key = parts[1].trim();
@@ -195,7 +187,7 @@ public class Server implements RemoteInterface {
   /**
    * Prepares the PUT operation by checking if the key-value pair can be committed.
    *
-   * @param key the key for the new key-value pair.
+   * @param key   the key for the new key-value pair.
    * @param value the value for the new key-value pair.
    * @return true if the PUT operation can be prepared and committed, false otherwise.
    * @throws RemoteException if a remote communication error occurs.
@@ -213,7 +205,7 @@ public class Server implements RemoteInterface {
    * Receives a prepare PUT request from another replica server and checks if the key-value pair
    * can be committed.
    *
-   * @param key the key for the new key-value pair.
+   * @param key   the key for the new key-value pair.
    * @param value the value for the new key-value pair.
    * @return true if the PUT operation can be prepared and committed, false otherwise.
    * @throws RemoteException if a remote communication error occurs.
@@ -227,8 +219,8 @@ public class Server implements RemoteInterface {
    * Receives the response to the prepare PUT request from another replica server.
    * If the response is positive (canCommit=true), it sends ACKs to all replicas to commit the PUT.
    *
-   * @param key the key for the new key-value pair.
-   * @param value the value for the new key-value pair.
+   * @param key       the key for the new key-value pair.
+   * @param value     the value for the new key-value pair.
    * @param canCommit true if the PUT operation can be committed, false otherwise.
    * @return true if all ACKs are received and the PUT is committed successfully, false otherwise.
    * @throws RemoteException if a remote communication error occurs.
@@ -253,7 +245,7 @@ public class Server implements RemoteInterface {
    * Checks if the PUT operation for the provided key-value pair can be committed.
    * The PUT can be committed if the key is not present in the key-value store.
    *
-   * @param key the key for the new key-value pair.
+   * @param key   the key for the new key-value pair.
    * @param value the value for the new key-value pair.
    * @return true if the PUT operation can be committed, false otherwise.
    * @throws RemoteException if a remote communication error occurs.
@@ -270,7 +262,7 @@ public class Server implements RemoteInterface {
    * If all replicas can commit, it performs the PUT operation in the key-value store
    * and sends ACKs to all replicas to commit the PUT.
    *
-   * @param key the key for the new key-value pair.
+   * @param key   the key for the new key-value pair.
    * @param value the value for the new key-value pair.
    * @throws RemoteException if a remote communication error occurs.
    */
@@ -366,7 +358,7 @@ public class Server implements RemoteInterface {
    * Receives the response to the prepare DELETE request from another replica.
    * If the response is positive (canCommit=true), it sends ACKs to all replicas to commit the DELETE.
    *
-   * @param key the key to be deleted.
+   * @param key       the key to be deleted.
    * @param canCommit true if the DELETE operation can be committed, false otherwise.
    * @return true if all ACKs are received and the DELETE is committed successfully, false otherwise.
    * @throws RemoteException if a remote communication error occurs.
@@ -494,6 +486,7 @@ public class Server implements RemoteInterface {
       isCoordinator = true;
     }
   }
+
   /**
    * Unregisters a replica server and removes it from the set of replica servers.
    * If there are no remaining replica servers, it resigns as the coordinator.

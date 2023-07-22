@@ -1,0 +1,17 @@
+Arpan Rakesh Patel
+Late Days Left: 4
+
+Assignment Summary:
+The assignment requires replicating the Key-Value Store Server across 5 distinct servers to increase server bandwidth and ensure availability. The client code should be able to contact any of the five replicas and get consistent data back from any of them for GET operations. PUT and DELETE operations should be possible on any of the five replicas. To ensure consistency across replicas, a two-phase protocol for updates (PUT and DELETE) must be implemented. The protocol involves using ACKs to confirm the receipt and successful commitment of updates in each replicated KV store at each replica.
+Also, to ensure data consistency across the replicas, a two-phase commit (2PC) protocol is implemented for PUT and DELETE operations. The protocol involves coordination between the replicas to guarantee that all replicas either commit or abort an update operation.
+
+Technical Impression:
+In this project, I implemented a simple distributed key-value store system using Java Remote Method Invocation (RMI). The system consists of two main components - the Server and the Client.
+
+One impressive aspect of the project I learnt is the use of the ConcurrentHashMap to implement the key-value store. This data structure ensures that the key-value operations are thread-safe, enabling concurrent access to the store.
+
+I also learnt the implementation of the two-phase commit protocol for PUT and DELETE operations is another highlight of the code. The protocol ensures that all replicas agree on the final state of the data before committing any changes. This approach guarantees consistency across all replicas, even in the presence of failures.
+
+Further potential improvement is to consider is implementing error handling and logging to provide more informative feedback to users and to aid in debugging. Currently, the code prints error messages directly to the console, which might not be sufficient for real-world scenarios.
+
+Overall in general, the project helped me to build a solid understanding of distributed systems and RMI concepts. The implementation of a distributed key-value store with features like fault tolerance, consistency, and concurrent access demonstrates the author's proficiency in distributed system design.

@@ -43,3 +43,52 @@ The client will prompt you with options for PUT, GET, DELETE, or exiting the sys
 #### Starting Replica Servers
 
 The main method of the `Server` class allows you to start multiple replica servers based on the number of replicas you want. The first replica will become the coordinator. The method uses the `startServer` private method to start each server instance.
+
+## Server Working Demo
+
+```
+Enter the number of replicas:
+5
+-------------------------------------
+The Replica 1 is the Coordinator.
+Server started on port: 1010
+Server started on port: 1011
+Server started on port: 1012
+Server started on port: 1013
+Server started on port: 1014
+[Time: 07-22-2023 17:22:21.419] PUT request processed.
+[Time: 07-22-2023 17:22:26.033] GET request processed
+```
+
+## Client Working Demo
+
+```
+Connected to Server Replica 1
+Connected to Server Replica 2
+Connected to Server Replica 3
+Connected to Server Replica 4
+Connected to Server Replica 5
+Choose an option:
+1. PUT
+2. GET
+3. DELETE
+4. Exit
+1
+Enter the values as: key=value
+Enter key-value pair: 1=a
+Choose a replica to connect (1-5 only):
+2
+<Time: 07-22-2023 17:22:21.450> PUT request processed.
+-------------------------------------
+Choose an option:
+1. PUT
+2. GET
+3. DELETE
+4. Exit
+2
+Enter key: 1
+Choose a replica to connect (1-5 only):
+3
+<Time: 07-22-2023 17:22:26.035> Response: Value: a
+-------------------------------------
+```

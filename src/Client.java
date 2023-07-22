@@ -1,8 +1,8 @@
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.TimeZone;
@@ -24,7 +24,6 @@ public class Client {
    */
   private static String getCurrentTimestamp() {
     SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss.SSS");
-    sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
     return "<Time: " + sdf.format(new Date()) + "> ";
   }
 
@@ -52,7 +51,7 @@ public class Client {
         if (replicaStub != null) {
           replicaStubs.add(replicaStub);
           replicaRegistryPorts.add(registryPort);
-          System.out.println("Connected to Replica " + replicaIndex);
+          System.out.println("Connected to Server Replica " + replicaIndex);
         } else {
           foundReplica = false;
         }
@@ -62,7 +61,7 @@ public class Client {
 
       // If no replicas are found, exit the client.
       if (replicaStubs.isEmpty()) {
-        System.out.println("No replica servers found. Exiting...");
+        System.out.println("No replica servers found! Exiting the program...");
         System.exit(0);
       }
 
@@ -73,6 +72,9 @@ public class Client {
       for (int i = 1; i < replicaStubs.size(); i++) {
         coordinatorStub.registerReplicaServer(replicaStubs.get(i));
       }
+
+      // Prepopulating Key-Value store with data
+      prepopulateKeyValues(coordinatorStub);
 
       // Client's main loop to handle user commands.
       while (true) {
@@ -87,19 +89,20 @@ public class Client {
 
         switch (option) {
           case 1:
-            System.out.print("Enter key-value pair (e.g., key=value): ");
+            System.out.println("Enter the values as: key=value");
+            System.out.print("Enter key-value pair: ");
             String keyValue = sc.nextLine();
             String[] keyValueArr = keyValue.split("=");
             String key = keyValueArr[0].trim();
             String value = keyValueArr[1].trim();
 
-            System.out.println("Choose a replica to connect (1-" + replicaStubs.size() + "):");
+            System.out.println("Choose a replica to connect (1-" + replicaStubs.size() + " only):");
             int replicaChoicePut = sc.nextInt();
             sc.nextLine();
 
             // Checking if the replica choice is valid.
             if (replicaChoicePut < 1 || replicaChoicePut > replicaStubs.size()) {
-              System.out.println("Invalid replica choice. Please try again.");
+              System.out.println("Invalid replica choice! Please try again.");
               break;
             }
 
@@ -122,13 +125,13 @@ public class Client {
             System.out.print("Enter key: ");
             String k = sc.nextLine();
 
-            System.out.println("Choose a replica to connect (1-" + replicaStubs.size() + "):");
+            System.out.println("Choose a replica to connect (1-" + replicaStubs.size() + " only):");
             int replicaChoiceGet = sc.nextInt();
             sc.nextLine();
 
             // Checking if the replica choice is valid.
             if (replicaChoiceGet < 1 || replicaChoiceGet > replicaStubs.size()) {
-              System.out.println("Invalid replica choice. Please try again.");
+              System.out.println("Invalid replica choice! Please try again.");
               break;
             }
 
@@ -142,7 +145,7 @@ public class Client {
             System.out.print("Enter key to delete: ");
             String deleteKey = sc.nextLine();
 
-            System.out.println("Choose a replica to connect (1-" + replicaStubs.size() + "):");
+            System.out.println("Choose a replica to connect (1-" + replicaStubs.size() + " only):");
             int replicaChoiceDelete = sc.nextInt();
             sc.nextLine();
 
@@ -172,7 +175,7 @@ public class Client {
             System.exit(0);
 
           default:
-            System.out.println("Invalid option. Please try again.");
+            System.out.println("Invalid option! Please try again.");
             break;
         }
 
@@ -195,10 +198,49 @@ public class Client {
   private static RemoteInterface connectToReplica(int registryPort) {
     try {
       Registry registry = LocateRegistry.getRegistry("localhost", registryPort);
-      RemoteInterface replicaStub = (RemoteInterface) registry.lookup("RemoteInterface");
-      return replicaStub;
+      return (RemoteInterface) registry.lookup("RemoteInterface");
     } catch (Exception e) {
       return null;
+    }
+  }
+
+  /**
+   * Prepopulates the Key-Value store with 5 PUT, GET, and DELETE commands.
+   *
+   * @param coordinatorStub the coordinator replica to interact with.
+   */
+  private static void prepopulateKeyValues(RemoteInterface coordinatorStub) {
+    try {
+      System.out.println("-------------------------------------");
+      System.out.println("Pre-populating Key-Value store with 5 PUT, GET, and DELETE commands...");
+
+      // PUT commands
+      coordinatorStub.processRequest("PUT Name=John Doe");
+      coordinatorStub.processRequest("PUT Place=Boston");
+      coordinatorStub.processRequest("PUT Age=25");
+      coordinatorStub.processRequest("PUT State=Massachusetts");
+      coordinatorStub.processRequest("PUT County=Suffolk");
+
+      // GET commands
+      System.out.println("GET Name: " + coordinatorStub.processRequest("GET Name"));
+      System.out.println("GET Place: " + coordinatorStub.processRequest("GET Place"));
+      System.out.println("GET Age: " + coordinatorStub.processRequest("GET Age"));
+      System.out.println("GET State: " + coordinatorStub.processRequest("GET State"));
+      System.out.println("GET County: " + coordinatorStub.processRequest("GET County"));
+
+      // DELETE commands
+      coordinatorStub.processRequest("DELETE Name");
+      coordinatorStub.processRequest("DELETE Place");
+      coordinatorStub.processRequest("DELETE Age");
+      coordinatorStub.processRequest("DELETE State");
+      coordinatorStub.processRequest("DELETE County");
+
+      System.out.println("Prepopulation completed successfully!");
+      System.out.println("-------------------------------------");
+    } catch (Exception e) {
+      System.out.println("Prepopulation failed!");
+      System.out.println("-------------------------------------");
+      e.printStackTrace();
     }
   }
 }
